@@ -94,7 +94,7 @@ class _AddCardViewState extends State<AddCardView> {
     );
 
     try {
-      await _dbHelper.insertItem(newItem);
+      await _dbHelper.insertItem(newItem, _selectedCategory);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

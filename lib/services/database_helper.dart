@@ -290,11 +290,13 @@ class DatabaseHelper {
   }
 
   // Insertar nuevo item
-  Future<CommunicationItem> insertItem(CommunicationItem item) async {
+  Future<CommunicationItem> insertItem(CommunicationItem item, String category) async {
     final db = await database;
+    final itemData = _itemToJson(item);
+    itemData['category'] = category; // Usar la categoría proporcionada
     await db.insert(
       'communication_items',
-      _itemToJson(item),
+      itemData,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return item;
