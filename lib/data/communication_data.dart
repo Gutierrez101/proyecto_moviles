@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:proyecto_moviles/models/communication_item.dart';
 
 class CommunicationData {
+  // Mapa principal que contiene todo el vocabulario de la aplicación.
+  // Organiza los 'CommunicationItems' dentro de listas categorizadas 
+  // (favoritos, comida, emociones, etc.) para fácil acceso desde la UI.
   static final Map<String, List<CommunicationItem>> categories = {
     'favoritos': [
       CommunicationItem(
@@ -29,6 +32,8 @@ class CommunicationData {
         color: Colors.purple,
       ),
     ],
+
+    // CATEGORÍA ALIMENTACIÓN
     'comida': [
       CommunicationItem(
         id: 'tengo_hambre',
@@ -67,6 +72,8 @@ class CommunicationData {
         color: Colors.green,
       ),
     ],
+
+    // CATEGORÍA EMOCIONES
     'emociones': [
       CommunicationItem(
         id: 'feliz',
@@ -105,6 +112,8 @@ class CommunicationData {
         color: Colors.grey,
       ),
     ],
+
+    //CATEGORÍA NECESIDADES BÁSICAS
     'necesidades': [
       CommunicationItem(
         id: 'baño',
@@ -139,6 +148,8 @@ class CommunicationData {
       CommunicationItem(
         id: 'descanso',
         text: 'Quiero descansar',
+
+        
         icon: Icons.weekend,
         color: Colors.green,
       ),

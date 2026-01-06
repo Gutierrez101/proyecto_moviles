@@ -154,121 +154,141 @@ class _HomePageState extends State<HomePage> {
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
-          builder: (context) => Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: Icon(
-                    isFavorite ? Icons.star : Icons.star_border,
-                    color: Colors.amber.shade700,
-                  ),
-                  title: Text(
-                    isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
-                  ),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    if (isFavorite) {
-                      setState(() {
-                        _favoriteIds.remove(item.id);
-                      });
-                    } else {
-                      setState(() {
-                        _favoriteIds.add(item.id);
-                      });
-                    }
-                    await _prefsService.saveFavorites(_favoriteIds);
-                    
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isFavorite ? 'Eliminado de favoritos' : 'Agregado a favoritos',
-                          ),
-                          backgroundColor: isFavorite 
-                            ? Colors.orange.shade700 
-                            : Colors.green.shade700,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                if (isCustom)
-                  ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.red),
-                    title: const Text('Eliminar tarjeta'),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      final shouldDelete = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Eliminar tarjeta'),
-                          content: Text(
-                            '¿Estás seguro de eliminar "${item.text}"? Esta acción no se puede deshacer.',
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancelar'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
-                              ),
-                              child: const Text('Eliminar'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (shouldDelete == true) {
-                        await _dbHelper.deleteItem(item.id);
-                        await _loadAllCategories();
-                        
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Tarjeta eliminada'),
-                              backgroundColor: Colors.red.shade700,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
+          builder: (context) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: _buildBottomSheetOptions(item, category, isCustom, isFavorite),
+              ),
+            );
+          },
         );
       }
     }
+  }
+
+  List<Widget> _buildBottomSheetOptions(CommunicationItem item, String category, bool isCustom, bool isFavorite) {
+    return [
+      const SizedBox(height: 8),
+      Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+      const SizedBox(height: 16),
+      ListTile(
+        leading: Icon(
+          isFavorite ? Icons.star : Icons.star_border,
+          color: Colors.amber.shade700,
+        ),
+        title: Text(
+          isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+        ),
+        onTap: () async {
+          Navigator.pop(context);
+          if (isFavorite) {
+            setState(() {
+              _favoriteIds.remove(item.id);
+            });
+          } else {
+            setState(() {
+              _favoriteIds.add(item.id);
+            });
+          }
+          await _prefsService.saveFavorites(_favoriteIds);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isFavorite ? 'Eliminado de favoritos' : 'Agregado a favoritos',
+                ),
+                backgroundColor: isFavorite ? Colors.orange.shade700 : Colors.green.shade700,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        },
+      ),
+      if (isCustom)
+        ListTile(
+          leading: const Icon(Icons.edit, color: Colors.blue),
+          title: const Text('Editar tarjeta'),
+          onTap: () async {
+            Navigator.pop(context);
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddCardView(item: item, category: category),
+              ),
+            );
+            if (result == true) {
+              await _loadAllCategories();
+            }
+          },
+        ),
+      if (isCustom)
+        ListTile(
+          leading: const Icon(Icons.delete, color: Colors.red),
+          title: const Text('Eliminar tarjeta'),
+          onTap: () async {
+            Navigator.pop(context);
+            final shouldDelete = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Eliminar tarjeta'),
+                content: Text(
+                  '¿Estás seguro de eliminar "${item.text}"? Esta acción no se puede deshacer.',
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                    child: const Text('Eliminar'),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldDelete == true) {
+              await _dbHelper.deleteItem(item.id);
+              await _loadAllCategories();
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Tarjeta eliminada'),
+                    backgroundColor: Colors.red.shade700,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      const SizedBox(height: 16),
+    ];
   }
 
   String _getCategoryTitle(String categoryKey) {
@@ -344,7 +364,7 @@ class _HomePageState extends State<HomePage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const AddCardView(),
+        builder: (context) => AddCardView(),
       ),
     );
 

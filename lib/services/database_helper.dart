@@ -21,8 +21,14 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE communication_items ADD COLUMN image_path TEXT');
+          await db.execute('ALTER TABLE communication_items ADD COLUMN is_image INTEGER NOT NULL DEFAULT 0');
+        }
+      },
     );
   }
 
@@ -31,8 +37,10 @@ class DatabaseHelper {
       CREATE TABLE communication_items (
         id TEXT PRIMARY KEY,
         text TEXT NOT NULL,
-        icon_code INTEGER NOT NULL,
+        icon_code INTEGER,
         color_value INTEGER NOT NULL,
+        image_path TEXT,
+        is_image INTEGER NOT NULL DEFAULT 0,
         category TEXT NOT NULL,
         is_custom INTEGER NOT NULL DEFAULT 1,
         created_at TEXT NOT NULL
@@ -292,8 +300,17 @@ class DatabaseHelper {
   // Insertar nuevo item
   Future<CommunicationItem> insertItem(CommunicationItem item, String category) async {
     final db = await database;
-    final itemData = _itemToJson(item);
-    itemData['category'] = category; // Usar la categoría proporcionada
+    final itemData = {
+      'id': item.id,
+      'text': item.text,
+      'icon_code': item.icon?.codePoint,
+      'color_value': item.color.value,
+      'image_path': item.imagePath,
+      'is_image': item.isImage ? 1 : 0,
+      'category': category,
+      'is_custom': 1,
+      'created_at': DateTime.now().toIso8601String(),
+    };
     await db.insert(
       'communication_items',
       itemData,
@@ -302,12 +319,33 @@ class DatabaseHelper {
     return item;
   }
 
-  // Actualizar item
+  // Actualizar item (preserva categoría y fecha creación originales)
   Future<int> updateItem(CommunicationItem item) async {
     final db = await database;
+    final original = await db.query(
+      'communication_items',
+      where: 'id = ?',
+      whereArgs: [item.id],
+    );
+    
+    if (original.isEmpty) return 0;
+    
+    final origCategory = original.first['category'] as String?;
+    final origCreatedAt = original.first['created_at'] as String?;
+    
     return db.update(
       'communication_items',
-      _itemToJson(item),
+      {
+        'id': item.id,
+        'text': item.text,
+        'icon_code': item.icon?.codePoint,
+        'color_value': item.color.value,
+        'image_path': item.imagePath,
+        'is_image': item.isImage ? 1 : 0,
+        'category': origCategory ?? 'custom',
+        'is_custom': 1,
+        'created_at': origCreatedAt ?? DateTime.now().toIso8601String(),
+      },
       where: 'id = ?',
       whereArgs: [item.id],
     );
@@ -339,8 +377,12 @@ class DatabaseHelper {
     return CommunicationItem(
       id: json['id'] as String,
       text: json['text'] as String,
-      icon: IconData(json['icon_code'] as int, fontFamily: 'MaterialIcons'),
+      icon: json['icon_code'] != null
+          ? IconData(json['icon_code'] as int, fontFamily: 'MaterialIcons')
+          : null,
       color: Color(json['color_value'] as int),
+      imagePath: json['image_path'] as String?,
+      isImage: (json['is_image'] as int?) == 1,
     );
   }
 
@@ -349,8 +391,10 @@ class DatabaseHelper {
     return {
       'id': item.id,
       'text': item.text,
-      'icon_code': item.icon.codePoint,
+      'icon_code': item.icon?.codePoint,
       'color_value': item.color.value,
+      'image_path': item.imagePath,
+      'is_image': item.isImage ? 1 : 0,
       'category': 'custom', // Las nuevas siempre son custom
       'is_custom': 1,
       'created_at': DateTime.now().toIso8601String(),

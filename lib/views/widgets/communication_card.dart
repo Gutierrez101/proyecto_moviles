@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_moviles/models/communication_item.dart';
+import 'dart:io';
 
 class CommunicationCard extends StatelessWidget {
   final CommunicationItem item;
@@ -7,11 +8,11 @@ class CommunicationCard extends StatelessWidget {
   final VoidCallback? onLongPress;
 
   const CommunicationCard({
-    Key? key,
+    super.key,
     required this.item,
     required this.onTap,
     this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +35,32 @@ class CommunicationCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                item.icon,
-                size: 64,
-                color: item.color,
-              ),
+              // --- 2. AQUÍ ESTÁ EL CAMBIO PRINCIPAL ---
+              // Preguntamos: ¿Es una imagen Y tiene una ruta válida?
+              if (item.isImage && item.imagePath != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(item.imagePath!), // Cargamos la imagen desde el archivo
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
+                    // Si falla cargar la imagen, mostramos un ícono roto
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image,
+                          size: 64, color: item.color);
+                    },
+                  ),
+                )
+              else
+                // Si no es imagen, mostramos el ícono normal
+                Icon(
+                  item.icon ?? Icons.help_outline, // Usamos un ícono por defecto si fuera null
+                  size: 64,
+                  color: item.color,
+                ),
+              // -----------------------------------------
+
               const SizedBox(height: 12),
               Text(
                 item.text,

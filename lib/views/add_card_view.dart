@@ -1,9 +1,23 @@
+
+
+
+
+
+
+
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_moviles/models/communication_item.dart';
 import 'package:proyecto_moviles/services/database_helper.dart';
 
 class AddCardView extends StatefulWidget {
-  const AddCardView({super.key});
+  final CommunicationItem? item;
+  final String? category;
+
+  const AddCardView({super.key, this.item, this.category});
 
   @override
   State<AddCardView> createState() => _AddCardViewState();
@@ -16,6 +30,8 @@ class _AddCardViewState extends State<AddCardView> {
   String _selectedCategory = 'comida';
   IconData _selectedIcon = Icons.chat_bubble;
   Color _selectedColor = const Color(0xFF6A5AE0);
+  bool _useImage = false;
+  String? _imagePath;
 
   final List<Map<String, dynamic>> _categories = [
     {'value': 'comida', 'label': 'Comida y Bebida'},
@@ -67,6 +83,22 @@ class _AddCardViewState extends State<AddCardView> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item != null) {
+      final it = widget.item!;
+      _textController.text = it.text;
+      _selectedIcon = it.icon ?? _selectedIcon;
+      _selectedColor = it.color;
+      _selectedCategory = widget.category ?? _selectedCategory;
+      _useImage = it.isImage;
+      _imagePath = it.imagePath;
+    } else if (widget.category != null) {
+      _selectedCategory = widget.category!;
+    }
+  }
+
   Future<void> _saveCard() async {
     final text = _textController.text.trim();
     
@@ -84,22 +116,29 @@ class _AddCardViewState extends State<AddCardView> {
       return;
     }
 
-    final id = 'custom_${DateTime.now().millisecondsSinceEpoch}';
-    
+    final isEditing = widget.item != null;
+    final id = isEditing ? widget.item!.id : 'custom_${DateTime.now().millisecondsSinceEpoch}';
+
     final newItem = CommunicationItem(
       id: id,
       text: text,
-      icon: _selectedIcon,
+      icon: _useImage ? null : _selectedIcon,
       color: _selectedColor,
+      imagePath: _useImage ? _imagePath : null,
+      isImage: _useImage,
     );
 
     try {
-      await _dbHelper.insertItem(newItem, _selectedCategory);
+      if (isEditing) {
+        await _dbHelper.updateItem(newItem);
+      } else {
+        await _dbHelper.insertItem(newItem, _selectedCategory);
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('¡Tarjeta creada exitosamente!'),
+            content: Text(widget.item != null ? '¡Tarjeta editada exitosamente!' : '¡Tarjeta creada exitosamente!'),
             backgroundColor: Colors.green.shade700,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -122,6 +161,17 @@ class _AddCardViewState extends State<AddCardView> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) {
+      setState(() {
+        _imagePath = picked.path;
+        _useImage = true;
+      });
     }
   }
 
@@ -153,11 +203,23 @@ class _AddCardViewState extends State<AddCardView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      _selectedIcon,
-                      size: 70,
-                      color: _selectedColor,
-                    ),
+                    _useImage && _imagePath != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SizedBox(
+                            width: 70,
+                            height: 70,
+                            child: Image.file(
+                              File(_imagePath!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          _selectedIcon,
+                          size: 70,
+                          color: _selectedColor,
+                        ),
                     const SizedBox(height: 16),
                     Text(
                       _textController.text.isEmpty 
@@ -252,60 +314,116 @@ class _AddCardViewState extends State<AddCardView> {
             
             const SizedBox(height: 24),
             
-            // Selector de icono
+            // Selector tipo: icono o imagen
             Text(
-              'Ícono',
+              'Tipo',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey.shade700,
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: _availableIcons.length,
-                itemBuilder: (context, index) {
-                  final icon = _availableIcons[index];
-                  final isSelected = icon == _selectedIcon;
-                  
-                  return GestureDetector(
-                    onTap: () {
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('Icono'),
+                  selected: !_useImage,
+                  onSelected: (v) {
+                    setState(() {
+                      _useImage = !v ? true : false;
+                      if (!_useImage) _imagePath = null;
+                    });
+                  },
+                ),
+                const SizedBox(width: 12),
+                ChoiceChip(
+                  label: const Text('Imagen'),
+                  selected: _useImage,
+                  onSelected: (v) async {
+                    if (v) {
+                      await _pickImage();
+                    } else {
                       setState(() {
-                        _selectedIcon = icon;
+                        _useImage = false;
+                        _imagePath = null;
                       });
-                    },
-                    child: Container(
-                      width: 64,
-                      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected 
-                          ? _selectedColor.withOpacity(0.2) 
-                          : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? _selectedColor : Colors.grey.shade300,
-                          width: isSelected ? 2 : 1,
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (!_useImage)
+              Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  itemCount: _availableIcons.length,
+                  itemBuilder: (context, index) {
+                    final icon = _availableIcons[index];
+                    final isSelected = icon == _selectedIcon;
+                    
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedIcon = icon;
+                        });
+                      },
+                      child: Container(
+                        width: 64,
+                        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected 
+                            ? _selectedColor.withOpacity(0.2) 
+                            : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? _selectedColor : Colors.grey.shade300,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 32,
+                          color: isSelected ? _selectedColor : Colors.grey.shade600,
                         ),
                       ),
-                      child: Icon(
-                        icon,
-                        size: 32,
-                        color: isSelected ? _selectedColor : Colors.grey.shade600,
+                    );
+                  },
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Seleccionar de galería'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6A5AE0),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_imagePath != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(_imagePath!),
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  );
-                },
+                ],
               ),
-            ),
             
             const SizedBox(height: 24),
             
