@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -40,6 +32,7 @@ class _AddCardViewState extends State<AddCardView> {
   ];
 
   final List<IconData> _availableIcons = [
+    // Iconos estándar de Flutter
     Icons.chat_bubble,
     Icons.favorite,
     Icons.thumb_up,
@@ -60,6 +53,26 @@ class _AddCardViewState extends State<AddCardView> {
     Icons.camera_alt,
     Icons.headphones,
     Icons.palette,
+    // Más iconos útiles
+    Icons.restaurant,
+    Icons.fastfood,
+    Icons.local_pizza,
+    Icons.icecream,
+    Icons.local_bar,
+    Icons.sentiment_very_satisfied,
+    Icons.sentiment_satisfied,
+    Icons.sentiment_dissatisfied,
+    Icons.waving_hand,
+    Icons.handshake,
+    Icons.sports_gymnastics,
+    Icons.fitness_center,
+    Icons.sports_basketball,
+    Icons.sports_baseball,
+    Icons.flight,
+    Icons.train,
+    Icons.directions_boat,
+    Icons.rocket_launch,
+    Icons.car_rental,
   ];
 
   final List<Color> _availableColors = [

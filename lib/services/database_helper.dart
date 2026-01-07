@@ -386,21 +386,6 @@ class DatabaseHelper {
     );
   }
 
-  // Convertir de CommunicationItem a JSON
-  Map<String, dynamic> _itemToJson(CommunicationItem item) {
-    return {
-      'id': item.id,
-      'text': item.text,
-      'icon_code': item.icon?.codePoint,
-      'color_value': item.color.value,
-      'image_path': item.imagePath,
-      'is_image': item.isImage ? 1 : 0,
-      'category': 'custom', // Las nuevas siempre son custom
-      'is_custom': 1,
-      'created_at': DateTime.now().toIso8601String(),
-    };
-  }
-
   Future<void> close() async {
     final db = await database;
     db.close();
