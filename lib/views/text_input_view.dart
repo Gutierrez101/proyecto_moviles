@@ -16,7 +16,6 @@ class _TextInputPageState extends State<TextInputPage> {
     final text = _textController.text.trim();
     if (text.isNotEmpty) {
       _ttsService.speak(text);
-      _textController.clear();
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
