@@ -7,6 +7,7 @@ import 'widgets/communication_card.dart';
 import 'package:proyecto_moviles/views/text_input_view.dart';
 import 'package:proyecto_moviles/views/add_card_view.dart';
 
+//Pantalla principal de la aplicacion
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -15,6 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //Servicio de voz, preferencias y DB
   final TTSService _ttsService = TTSService();
   final PreferencesService _prefsService = PreferencesService();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -22,10 +24,11 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   late PageController _pageController;
   
-  List<String> _favoriteIds = [];
+  List<String> _favoriteIds = [];//Id de tarjetas favoritas
   Map<String, List<CommunicationItem>> _categoriesData = {};
   bool _isLoading = true;
 
+  //Lista de categorias disponibles
   final List<String> _categories = [
     'favoritos', 
     'comida', 
@@ -77,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  //Lista de elementos a la categoria actual
   List<CommunicationItem> _getCurrentItems(String categoryKey) {
     if (categoryKey == 'favoritos') {
       final allItems = _categoriesData.values
@@ -98,10 +102,12 @@ class _HomePageState extends State<HomePage> {
     return _categoriesData[categoryKey] ?? [];
   }
 
+  //Reproduce el texto de la tarjeta seleccionada
   void _onItemTap(CommunicationItem item) {
     _ttsService.speak(item.text);
   }
 
+  //Maneja la accion de mantener presionada una tarjeta
   void _onItemLongPress(CommunicationItem item, String category) async {
     if (category == 'favoritos') {
       // Opción para eliminar de favoritos

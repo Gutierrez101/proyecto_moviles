@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_moviles/models/communication_item.dart';
 import 'package:proyecto_moviles/services/database_helper.dart';
 
+//Vista para crear o editar una tarjeta de comunicacion
 class AddCardView extends StatefulWidget {
   final CommunicationItem? item;
   final String? category;
@@ -16,6 +17,7 @@ class AddCardView extends StatefulWidget {
 }
 
 class _AddCardViewState extends State<AddCardView> {
+  //COntrolador de texto e instancia de la DB
   final TextEditingController _textController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   
@@ -90,12 +92,15 @@ class _AddCardViewState extends State<AddCardView> {
     const Color(0xFFE91E63), // Pink
   ];
 
+  //liberar recursos: siempre limpiamos los contraladores
   @override
   void dispose() {
     _textController.dispose();
     super.dispose();
   }
 
+  //Recibimos un item e inicializamos la UI con valores (default)
+  //la categoria es por defecto, aunque se puede cambiar
   @override
   void initState() {
     super.initState();
@@ -112,6 +117,9 @@ class _AddCardViewState extends State<AddCardView> {
     }
   }
 
+  //Validamos solo texto, genermoas id, construimos el item segun selecciones del usuario
+  //llama al DB para insertar o actualizar
+  //maneja errores con try/catch y muestra el snackbar
   Future<void> _saveCard() async {
     final text = _textController.text.trim();
     
@@ -177,6 +185,8 @@ class _AddCardViewState extends State<AddCardView> {
     }
   }
 
+  //Abre la galeria y guarda la ruta local, tambine se reduce el peso del archivo
+  //y el redimensionamiento de la imagen antes de guardar para el rendimiento
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
