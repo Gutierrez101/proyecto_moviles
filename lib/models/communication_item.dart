@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class CommunicationItem {
   final String id;
   final String text;
-  final IconData? icon; // nullable: may be null when using image
+  final IconData? icon;
   final Color color;
-  final String? imagePath; // local path to gallery image
-  final bool isImage; // whether this item uses an image instead of an icon
+  final String? imagePath; // imagen local
+  final bool isImage; // verificar si es imagen o icono
 
   CommunicationItem({
     required this.id,

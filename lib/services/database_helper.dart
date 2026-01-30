@@ -2,19 +2,19 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:proyecto_moviles/models/communication_item.dart';
 import 'package:flutter/material.dart';
-
+//Manejo de bases de datos
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
   DatabaseHelper._init();
-
+  //Inicializamos la DB
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('communication.db');
     return _database!;
   }
-
+  //Crea la DB en el dispositivo
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);

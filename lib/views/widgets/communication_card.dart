@@ -35,7 +35,6 @@ class CommunicationCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // --- 2. AQUÍ ESTÁ EL CAMBIO PRINCIPAL ---
               // Preguntamos: ¿Es una imagen Y tiene una ruta válida?
               if (item.isImage && item.imagePath != null)
                 ClipRRect(
@@ -59,7 +58,6 @@ class CommunicationCard extends StatelessWidget {
                   size: 64,
                   color: item.color,
                 ),
-              // -----------------------------------------
 
               const SizedBox(height: 12),
               Text(

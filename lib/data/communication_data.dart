@@ -33,7 +33,7 @@ class CommunicationData {
       ),
     ],
 
-    // CATEGORÍA ALIMENTACIÓN
+    // Categoria Alimentacion
     'comida': [
       CommunicationItem(
         id: 'tengo_hambre',
@@ -73,7 +73,7 @@ class CommunicationData {
       ),
     ],
 
-    // CATEGORÍA EMOCIONES
+    // Categoria Emociones
     'emociones': [
       CommunicationItem(
         id: 'feliz',
@@ -113,7 +113,7 @@ class CommunicationData {
       ),
     ],
 
-    //CATEGORÍA NECESIDADES BÁSICAS
+    //Categoria Necesidades basicas
     'necesidades': [
       CommunicationItem(
         id: 'baño',
@@ -148,8 +148,6 @@ class CommunicationData {
       CommunicationItem(
         id: 'descanso',
         text: 'Quiero descansar',
-
-        
         icon: Icons.weekend,
         color: Colors.green,
       ),
